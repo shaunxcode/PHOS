@@ -1,0 +1,18 @@
+PHOS is a php meta-object system 
+Some of the principal ideas are borrowed from CLOS and Smalltalk
+One of my pet peaves w/ development in almost all languages is the lack of ability to modify ONE method at a time w/o the boiler plate and clutter of all the other methods and signatures. Rather than utilizing an image based approach I am trying to utilize the file structure as the image by having each method be its own file.
+
+FUTURE:
+ability for static typing i.e.
+(Inches $inches, Float $velocity)
+return $inches * $velocity; 
+
+Would compile into a function which did type checking on the arguments before the body was reached throwing the appropriate exception. 
+
+ability to have "rest" args i.e
+($a, $b . $rest) 
+
+Again can be compiled into 
+$rest = func_get_args();
+$a = array_shift($args);
+$b = array_shift($args); 
