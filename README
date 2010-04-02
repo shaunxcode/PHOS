@@ -24,16 +24,23 @@ This would be compiled into
 
 As you can see this is really about using meaningful filenames and minimal syntactic sugar to reduce boiler plate. 
 
+Another feature is the ability to have meaningful defaults as we are going to utilize the __construct method - this means that you do not have to write your own constructor to do things like 
+	private $age = new Seconds(300);
+	
 GOALS:
 Provide a robust system in which the way objects are composed and maintained can be customized by the developer.
 
 TODO:
+* Standard object library 
+
+* how do we handle static properties? right now there are only static methods
+
 * determine how to handle inheritence and mixins. Do I go with more meta info in filenames or do we need some sort of config file per class which indicates extension and mixin? 
 
 * determine best way to handle generating the classes as they are modified - I imagine at "develop time" it will just regenerate them every time (unless this proves to be insanely slow) - I have considered perhaps doing some sort of checksum on the entirety of the files in the class dir? 
  
 FUTURE:
-ability for static typing i.e.
+ability for type declerations i.e.
 (Inches $inches, Float $velocity)
 return $inches * $velocity; 
 
