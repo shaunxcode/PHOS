@@ -5,6 +5,25 @@ One of my pet peaves w/ development in almost all languages is the lack of abili
 WHAT IT IS NOT:
 this is not a new language - it is merely a subset of php with a few restricitons i.e. no public properties what so ever.
 
+WHAT IS WORKING:
+Basically nothing - right now this is a rough sketch. But principally the only magic going on is that the method files will be compiled in such a way that if the first line contains a ( it will assume an argument list. If not it will assume an implict body. i.e. no need for { }. This means for one line methods with no arguments they could be as simple as:
+	return $this->property
+I am thinking of checking for last token being a ; so that this would be possible. 
+
+A more normal method named perhaps public/multiply file might be more like:
+	($x, $y)
+	$this->recordAction("Multiplying $x by $y");
+	return $x * $y;
+
+This would be compiled into 
+
+	public function multiply$x, $y) {
+		$this->recordAction("Multiplying $x by $y");
+		return $x * $y;
+	}
+
+As you can see this is really about using meaningful filenames and minimal syntactic sugar to reduce boiler plate. 
+
 GOALS:
 Provide a robust system in which the way objects are composed and maintained can be customized by the developer.
 
