@@ -2,6 +2,17 @@ PHOS is a php meta-object system
 Some of the principal ideas are borrowed from CLOS and Smalltalk
 One of my pet peaves w/ development in almost all languages is the lack of ability to modify ONE method at a time w/o the boiler plate and clutter of all the other methods and signatures. Rather than utilizing an image based approach I am trying to utilize the file structure as the image by having each method be its own file.
 
+WHAT IT IS NOT:
+this is not a new language - it is merely a subset of php with a few restricitons i.e. no public properties what so ever.
+
+GOALS:
+Provide a robust system in which the way objects are composed and maintained can be customized by the developer.
+
+TODO:
+* determine how to handle inheritence and mixins. Do I go with more meta info in filenames or do we need some sort of config file per class which indicates extension and mixin? 
+
+* determine best way to handle generating the classes as they are modified - I imagine at "develop time" it will just regenerate them every time (unless this proves to be insanely slow) - I have considered perhaps doing some sort of checksum on the entirety of the files in the class dir? 
+ 
 FUTURE:
 ability for static typing i.e.
 (Inches $inches, Float $velocity)
@@ -16,3 +27,7 @@ Again can be compiled into
 $rest = func_get_args();
 $a = array_shift($args);
 $b = array_shift($args); 
+
+What about allowing properties to be "accessbile" ala ruby so it implicitly creates getter/setters? 
+properties/weight.Pounds.accessible ?
+
