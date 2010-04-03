@@ -12,7 +12,7 @@ class/Person/extend [Object]
                      /weight.Pound
                      /name.String
                      /actions.LiveList
-            /private/recordAction [($acion) 
+            /private/recordAction [($action) 
                                    $this->actions->push($action); 
                                    return $this;]
             /public/increaseWeight [($amount)
@@ -57,3 +57,4 @@ Would compile into a function which did type checking on the arguments before th
 What about allowing properties to be "accessbile" ala ruby so it implicitly creates getter/setters? 
 properties/weight.Pounds.accessible ?
 
+drag and drop editor meets the smalltalk environment
