@@ -3,25 +3,22 @@ Some of the principal ideas are borrowed from CLOS, Smalltalk and Ruby
 One of my pet peeves w/ development in almost all languages is the lack of ability to modify ONE method at a time w/o the boiler plate and clutter of all the other methods and signatures. Rather than utilizing an image based approach I am trying to utilize the file structure as the image by having each method be its own file.
 
 WHAT IS WORKING:
-Methods 
-Principally the only magic going on is that the method files will be compiled in such a way that if the first line contains a ( it will assume an argument list. If not it will assume an implicit body. i.e. no need for { }. This means for one line methods with no arguments they could be as simple as:
-	return $this->property;
+A class is defined by having a folder beneath the class directory which defines the class name. Beneath that you can have a property directory which will be where all properties (private) are defined as files with the form [propertyname].[type]. This means that there are no dynamic properties. There can be public, private, protected and static directories which would each respectively contain files with the method argument list/bodies defined in them for the given scope. There can also be extend, implement and mixin files which contain class, interface or module names. Here is an example the text in [] is the content of the files:
 
-A more normal method named perhaps public/multiply file might be more like:
-	($x, $y)
-	$this->recordAction("Multiplying $x by $y");
-	return $x * $y;
-
-This would be compiled into 
-
-	public function multiply$x, $y) {
-		$this->recordAction("Multiplying $x by $y");
-		return $x * $y;
-	}
-
-As you can see this is really about using meaningful filenames and minimal syntactic sugar to reduce boiler plate. 
-
-Another feature is the ability to have meaningful defaults as we are going to utilize the __construct method - this means that you do not have to write your own constructor to do things like file name property/age.Second w/ the content of 300 would yield a the age property being defaulted to an object instantiated with 300.
+class/Person/extend [Object]
+            /implement [Creature, Playable]
+            /mixin [Math, Serializable]
+            /property/age.Second
+                     /weight.Pound
+                     /name.String
+                     /actions.LiveList
+            /private/recordAction [($acion) 
+                                   $this->actions->push($action); 
+                                   return $this;]
+            /public/increaseWeight [($amount)
+                                    $this->recordAction('increase weight by' . $amount);
+                                    $this->weight->increment($amount);
+                                    return $this]
 	
 The concept of "rest" args now works so you can have an argument list like
 	($x, $y = 20 . $restArgs)
