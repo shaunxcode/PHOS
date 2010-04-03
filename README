@@ -50,6 +50,8 @@ TODO:
 * determine best way to handle generating the classes as they are modified - I imagine at "develop time" it will just regenerate them every time (unless this proves to be insanely slow) - I have considered perhaps doing some sort of checksum on the entirety of the files in the class dir? 
  
 FUTURE:
+Namespaces and modules
+
 ability for type declerations i.e.
 (Inch $inches, Float $velocity)
 return $inches * $velocity; 

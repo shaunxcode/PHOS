@@ -1,5 +1,5 @@
 <?php
-class Person {
+class Person extends Model implements a,b,c{
 	private $age;
 	private $height;
 	private $items;
@@ -48,6 +48,10 @@ class Person {
 	public function sayItems() {
 		echo $this->items->implode(', ');
 		return $this;
+	}
+
+	public function sin($x) {
+		return sin($x);
 	}
 
 	public function __construct() {

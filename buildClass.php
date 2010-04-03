@@ -2,34 +2,14 @@
 
 define('CLASSDIR', 'class');
 define('GENERATEDIR', 'generated');
+define('MODULEDIR', 'module');
 
 function fileName() {
 	$args = func_get_args();
 	return implode('/', $args);
 }
 
-function generateClass($class) {
-	//make sure class exists
-	$classDir = fileName(CLASSDIR, $class);
-	if(!file_exists($classDir)) {
-		throw new Exception("$classDir does not appear to exist");
-	}
-	
-	//get the properties, based on type build constructor
-	$properties = array();
-	$propertyDir = fileName($classDir, 'property');
-	if(file_exists($propertyDir)) {
-		foreach(glob(fileName($propertyDir, '*')) as $property) {
-			list($fullName, $type) = explode('.', $property);
-			$name = array_pop(explode('/', $fullName));
-			$properties[$name] = (object)array(
-				'name' => $name, 
-				'type' => $type, 
-				'default' => trim(file_get_contents($property)));
-		}
-	}
-		
-	//get the methods
+function loadMethods($classDir) {
 	$methods = array();
 	foreach(array('static', 'private', 'public') as $methodScope) {
 		$methodDir = fileName($classDir, $methodScope);
@@ -136,8 +116,65 @@ function generateClass($class) {
 			}
 		}
 	}
+	return $methods;	
+}
 
-	$file = "<?php\nclass $class {\n";
+function loadProperties($classDir) {
+	$properties = array();
+	$propertyDir = fileName($classDir, 'property');
+	if(file_exists($propertyDir)) {
+		foreach(glob(fileName($propertyDir, '*')) as $property) {
+			list($fullName, $type) = explode('.', $property);
+			$name = array_pop(explode('/', $fullName));
+			$properties[$name] = (object)array(
+				'name' => $name, 
+				'type' => $type, 
+				'default' => trim(file_get_contents($property)));
+		}
+	}
+	return $properties;	
+}
+
+function generateClass($class) {
+	//make sure class exists
+	$classDir = fileName(CLASSDIR, $class);
+	if(!file_exists($classDir)) {
+		throw new Exception("$classDir does not appear to exist");
+	}
+
+	$definition = array('extend' => false, 'implement' => false, 'mixin' => false);
+	foreach($definition as $dname => $val) {
+		$dfile = fileName($classDir, $dname);
+		if(file_exists($dfile)) {
+			$definition[$dname] = array_map('trim', explode(',', trim(file_get_contents($dfile))));
+		}
+	}
+	
+	//get the properties, based on type build constructor
+	$properties = loadProperties($classDir);
+		
+	//get the methods
+	$methods = loadMethods($classDir);
+
+	$file = "<?php\nclass $class";
+	if($definition['extend']) {
+		$file .= ' extends ' . pos($definition['extend']);
+	}
+	
+	if($definition['implement']) {
+		$file .= ' implements ' . implode(',', $definition['implement']);
+	}
+	
+	if($definition['mixin']) {
+		//load mixin methods and properties
+		foreach($definition['mixin'] as $module) {
+			$moduleDir = fileName(MODULEDIR, $module);
+			$properties = array_merge($properties, loadProperties($moduleDir));
+			$methods = array_merge($methods, loadMethods($moduleDir));
+		}
+	}
+	
+	$file .= "{\n";
 	
 	//build the construct method based on the private propeties
 	$constructor = '';
