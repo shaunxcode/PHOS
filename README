@@ -31,7 +31,17 @@ GOALS:
 Provide a robust system in which the way objects are composed and maintained can be customized by the developer.
 
 TODO:
+* add better parsing/regex for making sure rest args is appropriate 
+
+* add comment parser
+
+* add string handling for args
+
+* deal with one line methods that start with ( ? Maybe just don't allow that? Or use | | instead i.e. like smalltalk? Or [ ] as that is not a valid way to start any statement in php, however neither is { }
+
 * Standard object library 
+
+* constructor expressions for properties i.e. if a property file contains a body of code it will create a private method which is called when instantiating the property in the generated constructor
 
 * how do we handle static properties? right now there are only static methods
 
@@ -41,7 +51,7 @@ TODO:
  
 FUTURE:
 ability for type declerations i.e.
-(Inches $inches, Float $velocity)
+(Inch $inches, Float $velocity)
 return $inches * $velocity; 
 
 Would compile into a function which did type checking on the arguments before the body was reached throwing the appropriate exception. 

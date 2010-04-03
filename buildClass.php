@@ -25,7 +25,7 @@ function generateClass($class) {
 			$properties[$name] = (object)array(
 				'name' => $name, 
 				'type' => $type, 
-				'default' => file_get_contents($property));
+				'default' => trim(file_get_contents($property)));
 		}
 	}
 		
@@ -39,8 +39,87 @@ function generateClass($class) {
 				$body = explode("\n", trim(file_get_contents($method)));
 				$args = $body[0][0] == '(' ? array_shift($body) : '()';
 				
+				//parse arg list to check for types and . rest args
+				$si = 0; 
+				$count = 0;
+				$length = strlen($args);
+				$argTokens = array();
+				$token = '';
+				$open = '(';
+				$close = ')';
+				$restArgs = false;
+				$inString = false;
+				$escapeNext = false;
+				$escaped = false;
+				while($si < $length) {
+					$char = $args[$si++]; 
+
+					if(!$inString && ($char == '"' || $char == "'")) {
+						$inString = $char;
+						$token .= $char;
+						continue;
+					}
+					
+					if($inString) {
+						if($char == '\\') {
+							$escapeNext = true;
+						}
+						
+						$token .= $char;
+
+						if(!$escaped && $char == $inString) {
+							$inString = false;
+						}
+						
+						if($escapeNext) {
+							$escaped = true;
+							$escapeNext = false;
+						} else if($escaped) {
+							$escaped = false;
+						}
+						
+						continue;
+					}
+					
+					if($char == $open) { 
+						$count++;
+						if($count > 1) {
+							$token .= $char;
+						}
+					} else if($char == $close) {
+						$count--;
+						if($count == 0 && $restArgs) {
+							$restArgs = trim($token);
+						} else {
+							$token .= $char;
+						}
+					} else if($count == 1 && $char == ',' || $char == '.') {
+						$tparts = explode('=', $token);
+						$argTokens[trim(array_shift($tparts))] = empty($tparts) ? false : implode('=', $tparts);
+						if($char == '.') {
+							$restArgs = true;	
+						}
+						$token = '';
+					} else {
+						$token .= $char;
+				    }
+				}
+
+				if($restArgs) {
+					$preBody = array("$restArgs = func_get_args();");
+					foreach($argTokens as $argName => $default) {
+						array_unshift($preBody, "$argName = " . ($default ? 'empty('. $restArgs.') ? ' . $default . ' : array_shift(' . $restArgs . ')' : 'array_shift('.$restArgs.')') . ';');
+					}
+					
+					foreach($preBody as $line) {
+						array_unshift($body, $line);
+					}
+					
+					$args = '()';
+				}
+				
 				$last = array_pop($body);
-				if(substr($last, -1, 1) !== ';') {
+				if(!in_array(substr($last, -1, 1), array(';', '}'))) {
 					$last .= ';';
 				}
 				$body[] = $last;
@@ -63,10 +142,8 @@ function generateClass($class) {
 	//build the construct method based on the private propeties
 	$constructor = '';
 	foreach($properties as $property) {
-		$file .= "\tprivate {$property->name};\n";
-		if(!empty($property->default)) {
-			$constructor .= "\t\t\$this->{$property->name} = {$property->default};\n";
-		}
+		$file .= "\tprivate \${$property->name};\n"; 
+		$constructor .= "\t\t\$this->{$property->name} = new {$property->type}({$property->default});\n";
 	}
 	
 	$file .= "\n";
@@ -78,7 +155,7 @@ function generateClass($class) {
 		'body' => $constructor);
 	
 	foreach($methods as $method) {
-		$file .= "\t{$method->scope} function {$method->name}{$method->args}{\n{$method->body}\n\t}\n\n";
+		$file .= "\t{$method->scope} function {$method->name}{$method->args} {\n{$method->body}\n\t}\n\n";
 	}
 	
 	//write file
