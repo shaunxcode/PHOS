@@ -4,6 +4,9 @@ class Person extends Model implements a,b,c{
 	private $height;
 	private $items;
 	private $weight;
+	private $hours;
+	private $minutes;
+	private $seconds;
 
 	static function getHeights() {
 		return array('large', 'small');
@@ -50,8 +53,16 @@ class Person extends Model implements a,b,c{
 		return $this;
 	}
 
+	protected function test($x, $y) {
+		return $x[$y];
+	}
+
 	public function sin($x) {
 		return sin($x);
+	}
+
+	public function difference($a, $b) {
+		return $a - $b;
 	}
 
 	public function __construct() {
@@ -59,6 +70,9 @@ class Person extends Model implements a,b,c{
 		$this->height = new Inch();
 		$this->items = new List("one element", "two element", "three");
 		$this->weight = new Pound();
+		$this->hours = new Int(60 * 60);
+		$this->minutes = new Int(60);
+		$this->seconds = new Int(1);
 
 	}
 

@@ -1,14 +1,11 @@
 PHOS is a php meta-object system 
-Some of the principal ideas are borrowed from CLOS and Smalltalk
-One of my pet peaves w/ development in almost all languages is the lack of ability to modify ONE method at a time w/o the boiler plate and clutter of all the other methods and signatures. Rather than utilizing an image based approach I am trying to utilize the file structure as the image by having each method be its own file.
-
-WHAT IT IS NOT:
-this is not a new language - it is merely a subset of php with a few restricitons i.e. no public properties what so ever.
+Some of the principal ideas are borrowed from CLOS, Smalltalk and Ruby
+One of my pet peeves w/ development in almost all languages is the lack of ability to modify ONE method at a time w/o the boiler plate and clutter of all the other methods and signatures. Rather than utilizing an image based approach I am trying to utilize the file structure as the image by having each method be its own file.
 
 WHAT IS WORKING:
-Basically nothing - right now this is a rough sketch. But principally the only magic going on is that the method files will be compiled in such a way that if the first line contains a ( it will assume an argument list. If not it will assume an implict body. i.e. no need for { }. This means for one line methods with no arguments they could be as simple as:
-	return $this->property
-I am thinking of checking for last token being a ; so that this would be possible. 
+Methods 
+Principally the only magic going on is that the method files will be compiled in such a way that if the first line contains a ( it will assume an argument list. If not it will assume an implicit body. i.e. no need for { }. This means for one line methods with no arguments they could be as simple as:
+	return $this->property;
 
 A more normal method named perhaps public/multiply file might be more like:
 	($x, $y)
@@ -24,32 +21,34 @@ This would be compiled into
 
 As you can see this is really about using meaningful filenames and minimal syntactic sugar to reduce boiler plate. 
 
-Another feature is the ability to have meaningful defaults as we are going to utilize the __construct method - this means that you do not have to write your own constructor to do things like 
-	private $age = new Seconds(300);
+Another feature is the ability to have meaningful defaults as we are going to utilize the __construct method - this means that you do not have to write your own constructor to do things like file name property/age.Second w/ the content of 300 would yield a the age property being defaulted to an object instantiated with 300.
 	
-GOALS:
-Provide a robust system in which the way objects are composed and maintained can be customized by the developer.
+The concept of "rest" args now works so you can have an argument list like
+	($x, $y = 20 . $restArgs)
+	foreach($restArgs as $arg) {
+		echo $arg + $x + $y;
+	}
+
+Mixins work which means the concept of modules must be introduced. A module can have properties and methods but can not be instantiated. Instead they can be included in a class by way of having a file with the name mixin which contains a comma separated list of which modules should be included. This will merge the properties/methods inline into the generated class. 
 
 TODO:
-* add better parsing/regex for making sure rest args is appropriate 
-
 * add comment parser
-
-* add string handling for args
 
 * deal with one line methods that start with ( ? Maybe just don't allow that? Or use | | instead i.e. like smalltalk? Or [ ] as that is not a valid way to start any statement in php, however neither is { }
 
-* Standard object library 
+* Standard class/module library 
 
 * constructor expressions for properties i.e. if a property file contains a body of code it will create a private method which is called when instantiating the property in the generated constructor
 
 * how do we handle static properties? right now there are only static methods
 
-* determine how to handle inheritence and mixins. Do I go with more meta info in filenames or do we need some sort of config file per class which indicates extension and mixin? 
+* also what about protected properties - right now we only have protected methods
 
 * determine best way to handle generating the classes as they are modified - I imagine at "develop time" it will just regenerate them every time (unless this proves to be insanely slow) - I have considered perhaps doing some sort of checksum on the entirety of the files in the class dir? 
  
 FUTURE:
+new method which will be merged ito __construct
+
 Namespaces and modules
 
 ability for type declerations i.e.
@@ -57,14 +56,6 @@ ability for type declerations i.e.
 return $inches * $velocity; 
 
 Would compile into a function which did type checking on the arguments before the body was reached throwing the appropriate exception. 
-
-ability to have "rest" args i.e
-($a, $b . $rest) 
-
-Again can be compiled into 
-$rest = func_get_args();
-$a = array_shift($args);
-$b = array_shift($args); 
 
 What about allowing properties to be "accessbile" ala ruby so it implicitly creates getter/setters? 
 properties/weight.Pounds.accessible ?

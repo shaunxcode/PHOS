@@ -11,7 +11,7 @@ function fileName() {
 
 function loadMethods($classDir) {
 	$methods = array();
-	foreach(array('static', 'private', 'public') as $methodScope) {
+	foreach(array('static', 'private', 'public', 'protected') as $methodScope) {
 		$methodDir = fileName($classDir, $methodScope);
 		if(file_exists($methodDir)) {
 			foreach(glob(fileName($methodDir, '*')) as $method) {
