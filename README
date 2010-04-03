@@ -1,4 +1,4 @@
-PHOS is a php meta-object system 
+PHOS is an alternative php object system 
 Some of the principal ideas are borrowed from CLOS, Smalltalk and Ruby
 One of my pet peeves w/ development in almost all languages is the lack of ability to modify ONE method at a time w/o the boiler plate and clutter of all the other methods and signatures. Rather than utilizing an image based approach I am trying to utilize the file structure as the image by having each method be its own file.
 
