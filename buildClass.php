@@ -4,6 +4,42 @@ define('CLASSDIR', 'class');
 define('GENERATEDIR', 'generated');
 define('MODULEDIR', 'module');
 
+class PHOS_PHP {
+	public $constructorName = '__construct';
+	
+	public function startClass($class, $definition) {
+		$string = "<?php\nclass $class";
+		
+		if($definition['extend']) {
+			$string .= ' extends ' . pos($definition['extend']);
+		}
+
+		if($definition['implement']) {
+			$string .= ' implements ' . implode(',', $definition['implement']);
+		}
+		
+		return $string . "{\n";
+	}
+
+	public function addProperty($property) {
+		return "\tprivate \${$property->name};\n"; 
+	}
+	
+	public function selfAssign($property, $value) {
+		return  "\t\t\$this->{$property->name} = $value";
+	}
+	
+	public function newObject() {
+		$args = func_get_args();
+		$class = array_shift($args);
+		return "new {$class}(" . implode(',', $args) . ");\n";
+	}
+	
+	public function method($method) {
+		return "\t{$method->scope} function {$method->name}{$method->args} {\n{$method->body}\n\t}\n\n";
+	}
+}
+
 function fileName() {
 	$args = func_get_args();
 	return implode('/', $args);
@@ -135,7 +171,10 @@ function loadProperties($classDir) {
 	return $properties;	
 }
 
-function generateClass($class) {
+function generateClass($class, $language = 'PHP') {
+	$languageClass = 'PHOS_' . $language;
+	$language = new $languageClass;
+	
 	//make sure class exists
 	$classDir = fileName(CLASSDIR, $class);
 	if(!file_exists($classDir)) {
@@ -156,14 +195,8 @@ function generateClass($class) {
 	//get the methods
 	$methods = loadMethods($classDir);
 
-	$file = "<?php\nclass $class";
-	if($definition['extend']) {
-		$file .= ' extends ' . pos($definition['extend']);
-	}
-	
-	if($definition['implement']) {
-		$file .= ' implements ' . implode(',', $definition['implement']);
-	}
+	//start the file
+	$file = $language->startClass($class, $definition);
 	
 	if($definition['mixin']) {
 		//load mixin methods and properties
@@ -174,26 +207,27 @@ function generateClass($class) {
 		}
 	}
 	
-	$file .= "{\n";
-	
 	//build the construct method based on the private propeties
 	$constructor = '';
 	foreach($properties as $property) {
-		$file .= "\tprivate \${$property->name};\n"; 
-		$constructor .= "\t\t\$this->{$property->name} = new {$property->type}({$property->default});\n";
+		$file .= $language->addProperty($property);
+		$constructor .= $language->selfAssign(
+			$property, 
+			$language->newObject($property->type, $property->default));
 	}
 	
 	$file .= "\n";
 
-	$methods['__construct'] = (object)array(
-		'name' => '__construct', 
+	$methods[$language->constructorName] = (object)array(
+		'name' => $language->constructorName, 
 		'scope' => 'public', 
 		'args' => '()', 
 		'body' => $constructor);
 	
 	foreach($methods as $method) {
-		$file .= "\t{$method->scope} function {$method->name}{$method->args} {\n{$method->body}\n\t}\n\n";
+		$file .= $language->method($method);
 	}
+	
 	
 	//write file
 	file_put_contents(fileName(GENERATEDIR, "class.$class.php"), $file . '}');

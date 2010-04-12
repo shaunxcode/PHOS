@@ -1,6 +1,7 @@
 <?php
-class Person extends Model implements a,b,c{
+class Person extends Model implements Creature{
 	private $age;
+	private $email;
 	private $height;
 	private $items;
 	private $weight;
@@ -53,6 +54,22 @@ class Person extends Model implements a,b,c{
 		return $this;
 	}
 
+	public function typeTest(String $name, Float $age) {
+		echo $name;
+		echo $age;
+	}
+
+	protected function newMethod() {
+		$rest = func_get_args();
+		$x = array_shift($rest);
+		$y = array_shift($rest);
+		echo $x;
+		echo $y;
+		foreach($rest as $arg) {
+			echo $arg;
+		}
+	}
+
 	protected function test($x, $y) {
 		return $x[$y];
 	}
@@ -67,9 +84,10 @@ class Person extends Model implements a,b,c{
 
 	public function __construct() {
 		$this->age = new Second(300);
+		$this->email = new String("This is a string", UTF::8);
 		$this->height = new Inch();
 		$this->items = new List("one element", "two element", "three");
-		$this->weight = new Pound();
+		$this->weight = new Pound(5000 * $this->age * $this->weight);
 		$this->hours = new Int(60 * 60);
 		$this->minutes = new Int(60);
 		$this->seconds = new Int(1);
