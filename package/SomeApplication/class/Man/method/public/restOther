@@ -1,0 +1,4 @@
+($x, $y . $z) 
+foreach($z as $id => $val) {
+	echo "$id is $val";
+}

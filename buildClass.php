@@ -1,8 +1,5 @@
 <?php
-
-define('CLASSDIR', 'class');
-define('GENERATEDIR', 'generated');
-define('MODULEDIR', 'module');
+require_once ('common.inc');
 
 class PHOS_PHP {
 	public $constructorName = '__construct';
@@ -40,12 +37,8 @@ class PHOS_PHP {
 	}
 }
 
-function fileName() {
-	$args = func_get_args();
-	return implode('/', $args);
-}
-
 function loadMethods($classDir) {
+	$classDir = fileName($classDir, METHODDIR);
 	$methods = array();
 	foreach(array('static', 'private', 'public', 'protected') as $methodScope) {
 		$methodDir = fileName($classDir, $methodScope);
@@ -157,7 +150,7 @@ function loadMethods($classDir) {
 
 function loadProperties($classDir) {
 	$properties = array();
-	$propertyDir = fileName($classDir, 'property');
+	$propertyDir = fileName($classDir, PROPERTYDIR);
 	if(file_exists($propertyDir)) {
 		foreach(glob(fileName($propertyDir, '*')) as $property) {
 			list($fullName, $type) = explode('.', $property);
@@ -171,12 +164,12 @@ function loadProperties($classDir) {
 	return $properties;	
 }
 
-function generateClass($class, $language = 'PHP') {
+function generateClass($package, $class, $language = 'PHP') {
 	$languageClass = 'PHOS_' . $language;
 	$language = new $languageClass;
 	
 	//make sure class exists
-	$classDir = fileName(CLASSDIR, $class);
+	$classDir = fileName(PACKAGEDIR, $package, CLASSDIR, $class);
 	if(!file_exists($classDir)) {
 		throw new Exception("$classDir does not appear to exist");
 	}
@@ -201,7 +194,7 @@ function generateClass($class, $language = 'PHP') {
 	if($definition['mixin']) {
 		//load mixin methods and properties
 		foreach($definition['mixin'] as $module) {
-			$moduleDir = fileName(MODULEDIR, $module);
+			$moduleDir = fileName(PACKAGEDIR, $package, MODULEDIR, $module);
 			$properties = array_merge($properties, loadProperties($moduleDir));
 			$methods = array_merge($methods, loadMethods($moduleDir));
 		}
@@ -233,4 +226,4 @@ function generateClass($class, $language = 'PHP') {
 	file_put_contents(fileName(GENERATEDIR, "class.$class.php"), $file . '}');
 }
 
-generateClass('Person');
+generateClass('SomeApplication', 'Person');

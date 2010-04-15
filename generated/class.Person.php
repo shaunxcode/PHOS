@@ -74,14 +74,6 @@ class Person extends Model implements Creature{
 		return $x[$y];
 	}
 
-	public function sin($x) {
-		return sin($x);
-	}
-
-	public function difference($a, $b) {
-		return $a - $b;
-	}
-
 	public function __construct() {
 		$this->age = new Second(300);
 		$this->email = new String("This is a string", UTF::8);

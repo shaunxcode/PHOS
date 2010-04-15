@@ -1,0 +1,6 @@
+($x, $y . $rest) 
+echo $x;
+echo $y;
+foreach($rest as $arg) {
+	echo $arg;
+}

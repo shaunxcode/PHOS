@@ -1,0 +1,373 @@
+<link rel="stylesheet" type="text/css" href="ext-3.2.0/resources/css/ext-all.css"/>
+<script type="text/javascript" src="ext-3.2.0/adapter/ext/ext-base.js"></script>
+<script type="text/javascript" src="ext-3.2.0/ext-all.js"></script>
+<script>
+var PHOS = {
+	server: 'server.php?method=',
+	classes: {},
+	classStores:{},
+	loadClass: function(className) {
+		if(!this.classes[className]) {
+			this.classStores[className] = {
+				method: new Ext.data.JsonStore({
+					storeId: className + 'MethodStore',
+					url: PHOS.server + 'getClassMethods&className=' + className,
+					root: 'result',
+					fields: ['name', 'scope']
+				}),
+				property: false
+			};
+			this.classStores[className].method.load();
+			this.editClass(className);
+		}
+		
+		Ext.Ajax.request({
+			url: PHOS.server + 'getClassDetails&className=' + className, 
+			success: function(response) {
+				var data = Ext.util.JSON.decode(response.responseText).result;
+								
+				for(var field in data) {
+					Ext.getCmp(className + field).setValue(data[field]);
+				}
+				
+				PHOS.classes[className] = true;
+			}
+		})
+	}, 
+	loadMethod: function(methodName) {
+		this.editMethod(methodName);
+		Ext.Ajax.request({
+			url: PHOS.server + 'getMethod&methodName=' + methodName, 
+			success: function(response) {
+				var data = Ext.util.JSON.decode(response.responseText).result;
+								
+				for(var field in data) {
+					Ext.getCmp(methodName + field).setValue(data[field]);
+				}
+			}
+		})		
+	},
+	editMethod: function(methodName) {
+		var win = new Ext.Window({
+			id: methodName + 'Window',
+		    title: methodName,
+		    width: 350,
+		    height: 270,
+		    layout: 'border',
+		    autoScroll: true,
+		    items: [
+		    	{
+		        	xtype: 'tabpanel',
+		            activeTab: 0,
+		            region: 'center',
+		            border: false,
+		            items: [
+		            	{
+		                	xtype: 'panel', 
+							title: 'Body',
+							layout: 'anchor',
+							border: false,
+							items: [
+								{
+									xtype: 'textarea',
+									id: methodName + 'body',
+									anchor: '100% 100%',
+									border: false
+								}
+							], 
+							buttons: [
+								{
+									xtype: 'button',
+									text: 'save'
+								}
+							],
+							buttonAlign: 'right'
+		                 },
+		                 {
+		                 	xtype: 'panel',
+		                    title: 'Description',
+		                 },
+		                 {
+		                    xtype: 'panel',
+		                    title: 'History',
+						 }
+		            ]
+		        }
+		    ]
+		});
+
+		win.show();
+	},
+	editClass: function(className) {
+		var MyWindowUi = Ext.extend(Ext.Window, {
+			id: className + 'Window',
+		    title: className,
+		    width: 350,
+		    height: 270,
+		    layout: 'border',
+		    autoScroll: true,
+		    initComponent: function() {
+		        this.items = [
+		            {
+		                xtype: 'tabpanel',
+		                activeTab: 0,
+		                region: 'center',
+		                border: false,
+		                items: [
+		                    {
+		                        xtype: 'panel',
+		                        title: 'Details',
+		                        buttonAlign: 'right',
+		                        items: [
+		                            {
+										autoScroll: 'auto',
+		                                xtype: 'form',
+		                                labelWidth: 100,
+		                                labelAlign: 'left',
+		                                layout: 'form',
+		                                hideBorders: true,
+		                                border: false,
+		                                padding: '10px',
+		                                buttonAlign: 'right',
+		                                footer: false,
+		                                minButtonWidth: '',
+		                                items: [
+		                                    {
+												id: className + 'extend',
+		                                        xtype: 'textfield',
+		                                        fieldLabel: 'Extends',
+		                                        anchor: '100%'
+		                                    },
+		                                    {
+												id: className + 'implement',
+		                                        xtype: 'textfield',
+		                                        fieldLabel: 'Implements',
+		                                        anchor: '100%'
+		                                    },
+		                                    {
+												id: className + 'mixin',
+		                                        xtype: 'textfield',
+		                                        fieldLabel: 'Mixin',
+		                                        anchor: '100%'
+		                                    }, 
+											{
+												id: className + 'description',
+											    xtype: 'textarea',
+											    fieldLabel: 'Description',
+											    anchor: '100%'
+											}
+		                                ],
+										buttons: [
+											{
+	                                        	xtype: 'button',
+	                                        	text: 'Save',
+	                                        	anchor: '',
+	                                        	autoWidth: false
+	                                    	}
+										]
+		                            }
+		                        ]
+		                    },
+		                    {
+		                        xtype: 'panel',
+		                        title: 'Properties',
+		                        items: [
+		                            {
+		                                xtype: 'treepanel',
+		                                border: false,
+		                                root: {
+		                                    text: 'Root Node'
+		                                },
+		                                loader: {
+
+		                                }
+		                            }
+		                        ]
+		                    },
+		                    {
+		                        xtype: 'panel',
+		                        title: 'Methods',
+								layout: 'anchor',
+								items: [{
+									anchor: '100% 100%',
+									border: false,
+									"id": className + 'methodGrid',
+								    "xtype": "grid",
+								    "columns": [
+								        {
+								            "xtype": "gridcolumn",
+								            "header": "Name",
+								            "sortable": true,
+								            "resizable": true,
+								            "width": 100,
+								            "dataIndex": "name"
+								        },
+								        {
+								            "xtype": "gridcolumn",
+								            "header": "Scope",
+								            "sortable": true,
+								            "resizable": true,
+								            "width": 100,
+								            "dataIndex": "scope"
+								        }
+								    ],
+									sm: new Ext.grid.RowSelectionModel({
+										singleSelect: true,
+										listeners: {
+											rowSelect: function(sm, index, record) {
+												PHOS.loadMethod(className + '.method.' + record.json.scope + '.' + record.json.name);
+											}
+										}
+									}),
+									viewConfig: {
+										forceFit: true
+									},
+									autoHeight: true,
+									autoWidth: true,
+									store: PHOS.classStores[className].method
+								}]
+		                    }
+		                ]
+		            }
+		        ];
+		        MyWindowUi.superclass.initComponent.call(this);
+		    }
+		});
+
+		var win = new MyWindowUi();
+		win.show();
+	}
+};
+
+var hierarchy = new Ext.Window({
+    "title": "Class Hierarchy",
+    "width": 234,
+    "height": 457,
+    "items": [
+        {
+			"id": "classHierarchy",
+            "xtype": "treepanel",
+            "border": false,
+			"listeners": {
+				"click": function(node) {
+					if(node.attributes.type == 'class') {
+						PHOS.loadClass(node.id);
+					}
+				}
+			}
+        }
+    ]
+});
+
+var packages = new Ext.Window({
+	x: '30px',
+	y: '50px',
+    "title": "Packages",
+    "width": 234,
+    "height": 457,
+    "items": [
+        {
+			"id": "classPackages",
+            "xtype": "treepanel",
+            "border": false,
+			"listeners": {
+				"click": function(node) {
+					if(node.attributes.type == 'class') {
+						PHOS.loadClass(node.id);
+					}
+				}
+			}
+        }
+    ]
+});
+
+var classStore = new Ext.data.JsonStore({
+	storeId: 'classStore',
+	url: 'server.php?method=getClasses',
+	root: 'result',
+	fields: ['package', 'parent', 'class'],
+	listeners: {
+		load: function() {
+			var parents = {
+				omega: {
+					'text': 'classes',
+					'children': []
+				}
+			};
+			
+			var packages = {};
+			
+			this.data.each(function(item) {
+				var class = item.json.class;
+				var package = item.json.package;
+				if(!packages[package]) {
+					packages[package] = {classes:[], modules:[]};
+				}
+				
+				if(item.json.module) {
+					packages[package].modules.push({
+						type: 'module',
+						id: item.json.package + '.module.' + item.json.module, 
+						text: item.json.module, 
+						leaf: true
+					});
+				}
+				
+				if(item.json.class) {
+					packages[package].classes.push({
+						type: 'class',
+						id: item.json.package + '.class.' + class, 
+						text: class, 
+						leaf: true
+					});
+
+					parents[class] = {
+						type: 'class',
+						id: item.json.package + '.class.' + class, 
+						text: class, 
+						children: [], 
+						parent: item.json.parent
+					};
+				}
+			});
+			
+			for(var class in parents) {
+				if(class == 'omega') continue;
+				var parent = parents[class].parent;
+				parents[parents[parent] ? parent : 'omega'].children.push(parents[class]);
+			}
+			
+			var packageList = {
+				'text': 'packages',
+				'children': []
+			};
+			
+			for(var package in packages) {
+				packageList.children.push({
+					text: package, 
+					children: [{
+							text: 'classes',
+							children: packages[package].classes
+						},{
+							text: 'modules', 
+							children: packages[package].modules}
+					]
+				});
+			}
+			
+			Ext.getCmp('classPackages').setRootNode(packageList);
+			Ext.getCmp('classHierarchy').setRootNode(parents.omega);
+		}
+	}
+});
+
+classStore.load();
+
+
+</script>
+<div style="margin: 1em">
+	<button onclick="hierarchy.show()">class hierarchy</button>
+	<button onclick="packages.show()">package hierarchy</button>
+	<button onclick="editClass()">edit class</button>
+	load: <input type="text">
+</div>

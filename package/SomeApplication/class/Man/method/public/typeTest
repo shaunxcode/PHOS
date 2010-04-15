@@ -1,0 +1,3 @@
+(String $name, Float $age)
+echo $name;
+echo $age;
